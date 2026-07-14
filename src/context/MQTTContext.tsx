@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import mqtt from 'mqtt';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
 
 type MqttClient = mqtt.MqttClient;
 
@@ -24,16 +23,13 @@ export const MQTTProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mqttClient: MqttClient | null = null;
 
     const initMQTT = async () => {
-      // Fetch settings from Supabase
-      const { data } = await supabase.from('user_settings').select('mqtt_broker').limit(1).maybeSingle();
-      
-      const brokerUrl = data?.mqtt_broker || 'wss://test.mosquitto.org:8081';
+      // Use ENV for broker to avoid Supabase fetching before authentication
+      const brokerUrl = import.meta.env.VITE_MQTT_BROKER || 'wss://test.mosquitto.org:8081';
       const deviceId = import.meta.env.VITE_DEVICE_ID || 'focushub-01';
       
       mqttClient = mqtt.connect(brokerUrl, {
         reconnectPeriod: 5000,
         clientId: `${deviceId}_${Math.random().toString(16).slice(3)}`,
-        // Only add credentials if it's not the public test broker
         ...(brokerUrl.includes('test.mosquitto.org') ? {} : {
           username: import.meta.env.VITE_MQTT_USER || 'kuchu puchu',
           password: import.meta.env.VITE_MQTT_PASS || 'zebronics',
@@ -64,7 +60,20 @@ export const MQTTProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       mqttClient.on('message', (topic, message) => {
-        setLastMessage({ topic, payload: message.toString() });
+        const payloadStr = message.toString();
+        setLastMessage({ topic, payload: payloadStr });
+
+        // Global intercept for battery alerts
+        if (topic === 'myhome/smarthub_xyz/telemetry') {
+          try {
+            const data = JSON.parse(payloadStr);
+            if (data.battery_status === 'low') {
+              toast.error(`Low Battery Warning! (${data.battery_percent}%)`, { duration: 5000, id: 'batt-low' });
+            } else if (data.battery_status === 'full' || data.battery_percent === 100) {
+              toast.success('Battery 100% Charged', { duration: 5000, id: 'batt-full' });
+            }
+          } catch(e) {}
+        }
       });
     };
 

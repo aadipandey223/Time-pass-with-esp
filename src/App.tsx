@@ -2,26 +2,33 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppLayout } from './components/Layout/AppLayout';
 import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
+import { WeatherView } from './pages/WeatherView';
+import { AITerminalView } from './pages/AITerminalView';
+import { HardwareView } from './pages/HardwareView';
+import { AnalyticsView } from './pages/AnalyticsView';
 import { ThemeProvider } from './context/ThemeContext';
 import { MQTTProvider } from './context/MQTTContext';
+import { AuthOverlay } from './components/Auth/AuthOverlay';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <ThemeProvider>
       <MQTTProvider>
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="weather" element={<div className="text-white p-6 text-xl">Weather Module (Detailed View Coming Soon)</div>} />
-              <Route path="ai" element={<div className="text-white p-6 text-xl">AI Core Module (Detailed View Coming Soon)</div>} />
-              <Route path="hardware" element={<div className="text-white p-6 text-xl">Hardware Module (Detailed View Coming Soon)</div>} />
-              <Route path="analytics" element={<div className="text-white p-6 text-xl">Analytics Module (Detailed View Coming Soon)</div>} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <AuthOverlay>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Routes>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="weather" element={<WeatherView />} />
+                <Route path="ai" element={<AITerminalView />} />
+                <Route path="hardware" element={<HardwareView />} />
+                <Route path="analytics" element={<AnalyticsView />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </AuthOverlay>
         <Toaster 
           position="bottom-right"
           toastOptions={{

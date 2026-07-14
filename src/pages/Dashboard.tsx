@@ -5,6 +5,7 @@ import { WeatherRadar } from '../components/Widgets/WeatherRadar';
 import { AICore } from '../components/Widgets/AICore';
 import { HardwareMonitor } from '../components/Widgets/HardwareMonitor';
 import { DeviceControl } from '../components/Widgets/DeviceControl';
+import { MapWidget } from '../components/Widgets/MapWidget';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -22,6 +23,7 @@ export const Dashboard: React.FC = () => {
     >
       <PomodoroCard />
       <WeatherRadar />
+      <MapWidget />
       <HardwareMonitor />
       <AICore className="md:col-span-2 xl:col-span-2" />
       <DeviceControl />
