@@ -59,7 +59,7 @@ export const AuthOverlay: React.FC<AuthOverlayProps> = ({ children }) => {
     setTimeout(() => {
       setLoading((prev) => {
         if (prev) {
-          toast.error('ESP not responding. Try again.');
+          setTimeout(() => toast.error('ESP not responding. Try again.'), 0);
           return false;
         }
         return prev;

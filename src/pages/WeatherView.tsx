@@ -6,8 +6,10 @@ import { getGPSLocation, type Coordinates } from '@/lib/engines/gps-service';
 import { getWeatherData, type WeatherData, type WeatherConfig } from '@/lib/engines/weather-engine';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
+import { useMQTT } from '@/context/MQTTContext';
 
 export const WeatherView: React.FC = () => {
+  const { publish } = useMQTT();
   const [data, setData] = useState<WeatherData | null>(null);
   const [coords, setCoords] = useState<Coordinates | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,13 @@ export const WeatherView: React.FC = () => {
 
         const weatherData = await getWeatherData(configs, location.lat, location.lon);
         setData(weatherData);
+        
+        // Sync weather to ESP32
+        publish('myhome/smarthub_xyz/weather_sync', JSON.stringify({
+          temp: weatherData.temp,
+          feelsLike: weatherData.feelsLike,
+          desc: weatherData.description
+        }));
       } catch (err: any) {
         console.error(err);
       } finally {
@@ -33,7 +42,7 @@ export const WeatherView: React.FC = () => {
       }
     };
     fetchAll();
-  }, []);
+  }, [publish]);
 
   if (loading) {
     return (

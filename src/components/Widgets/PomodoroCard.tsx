@@ -92,6 +92,17 @@ export const PomodoroCard: React.FC = () => {
     return () => clearInterval(interval);
   }, [isActive, timeLeft, mode]);
 
+  useEffect(() => {
+    if (isActive) {
+      const currentTaskText = tasks.find(t => t.id === activeTaskId)?.text || "";
+      publish('myhome/smarthub_xyz/pomodoro_sync', JSON.stringify({
+        timeLeft,
+        mode,
+        task: currentTaskText
+      }));
+    }
+  }, [timeLeft, mode, activeTaskId, isActive, tasks, publish]);
+
   const playSound = () => {
     if (soundEnabled && alarmAudio.current) {
       alarmAudio.current.currentTime = 0;
@@ -104,7 +115,7 @@ export const PomodoroCard: React.FC = () => {
     playSound();
 
     if (mode === 'focus') {
-      publish('myhome/smarthub_xyz/cmd', JSON.stringify({ action: 'pomodoro_finished' }));
+      publish('myhome/smarthub_xyz/pomodoro', JSON.stringify({ action: 'pomodoro_finished' }));
       const newSessionsCompleted = sessionsCompleted + 1;
       setSessionsCompleted(newSessionsCompleted);
       

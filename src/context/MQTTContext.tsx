@@ -30,6 +30,12 @@ export const MQTTProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mqttClient = mqtt.connect(brokerUrl, {
         reconnectPeriod: 5000,
         clientId: `${deviceId}_${Math.random().toString(16).slice(3)}`,
+        will: {
+          topic: 'myhome/smarthub_xyz/ui_status',
+          payload: JSON.stringify({ status: 'offline' }),
+          qos: 1,
+          retain: false,
+        },
         ...(brokerUrl.includes('test.mosquitto.org') ? {} : {
           username: import.meta.env.VITE_MQTT_USER || 'kuchu puchu',
           password: import.meta.env.VITE_MQTT_PASS || 'zebronics',
@@ -39,9 +45,11 @@ export const MQTTProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setClient(mqttClient);
 
       mqttClient.on('connect', () => {
+        if (!mqttClient || mqttClient.disconnecting) return;
         setStatus('connected');
         toast.success('Connected to MQTT Broker', { id: 'mqtt-status' });
-        mqttClient?.subscribe('myhome/smarthub_xyz/#');
+        mqttClient.publish('myhome/smarthub_xyz/ui_status', JSON.stringify({ status: 'online' }));
+        mqttClient.subscribe('myhome/smarthub_xyz/#');
       });
 
       mqttClient.on('reconnect', () => {
